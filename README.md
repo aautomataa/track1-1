@@ -102,7 +102,7 @@ The track uses the **LCVN dataset**, comprising **39,016 trajectories** sourced 
 The instructions cover three styles:
 
 - **Concise:** Short instructions containing essential directional cues.
-- **Intricate:** Detailed instructions describing visual context, objects, people, and scene layout.
+- **Intricate:** Route instructions enriched with detailed descriptions of the surrounding scene.
 - **Landmark-grounded:** Instructions anchored to salient environmental landmarks.
 
 ### Dataset Splits
