@@ -284,7 +284,7 @@ See **Submission & Evaluation** on CodaBench for action limits. Upload the archi
 
 ### Submission Limits
 
-Phase 2 allows **5 submissions per day and 200 in total per participant**. Phase 1 allows **100 per day and 100 in total**. The leaderboard retains the team's best-scoring submission.
+Each phase allows **5 submissions per day and 200 in total per participant**. The leaderboard retains the team's best-scoring submission.
 
 ## ❓ Frequently Asked Questions
 
