@@ -62,6 +62,8 @@ Agents may generate the trajectory autoregressively, using their own predicted f
 
 **Phase 1 supports method development and validation; it does not determine shortlisting, final rankings, or awards. Final rankings and awards are determined entirely by the Phase 2 test Score.** Scores from the two phases are not combined. Phase 1 remains open for validation submissions during Phase 2.
 
+**Updated October 31, 2026:** Phase 2: Final Evaluation is open. [Download the Phase 2 dataset (Google Drive)](https://drive.google.com/drive/folders/1QWGsRBB8KlS_v9Jf0S51C3SpKltL_ZPL?usp=sharing).
+
 #### Phase 2 inputs
 
 Each test sample contains one initial image and a `traj_data.pkl` containing only `instruction`:
@@ -117,16 +119,22 @@ Each trajectory is paired with three instruction styles:
 
 Go Stanford, ReCon, SCAND, and HuRoN provide the training and in-domain evaluation data. The unseen validation split is drawn exclusively from TartanDrive. The test split contains trajectories from both TartanDrive and in-domain sources.
 
-The training and validation splits are available on [Hugging Face](https://huggingface.co/datasets/fly1113/LCVN). Phase 2 provides the test inference inputs: initial RGB observations and language instructions. Reference test trajectories and target annotations remain withheld for official evaluation.
+- **Training and validation:** [LCVN on Hugging Face](https://huggingface.co/datasets/fly1113/LCVN).
+- **Phase 2: Final Evaluation:** [Google Drive folder](https://drive.google.com/drive/folders/1QWGsRBB8KlS_v9Jf0S51C3SpKltL_ZPL?usp=sharing). Download `worldnav_test.zip` and extract the `test/` folder. Each sample provides its initial image and instruction; reference annotations remain withheld.
 
 ## 🚀 Getting Started
 
 ### 1. Download the Data
 
+For Phase 2, download `worldnav_test.zip` from the [Dataset](#-dataset) section above and extract it.
+
+<details>
+<summary><b>Training and Phase 1 validation data (click to expand)</b></summary>
+
 From this track repository, run:
 
 ```bash
-# Download and extract all released splits.
+# Download and extract training and validation splits.
 bash download_data.sh
 
 # Alternatively, download only the Phase 1 validation splits.
@@ -156,16 +164,18 @@ data/
 
 Each `{trajectory_id}/` folder contains a sequence of egocentric RGB frames (`0.jpg`, `1.jpg`, ..., `n.jpg`) and a `traj_data.pkl` file storing trajectory metadata such as navigation actions, pose-related information, and language instructions.
 
+</details>
+
 ### 2. Set Up a Baseline
 
 Clone the LCVN implementation:
 
 ```bash
-git clone https://github.com/F1y1113/LCVN.git
+git clone https://github.com/UWMILab/LCVN.git
 cd LCVN
 ```
 
-Follow the model-specific environment setup, data preparation, training, and inference instructions in the [LCVN README](https://github.com/F1y1113/LCVN#readme). LCVN-Uni and LCVN-WM + LCVN-AC use separate environments.
+Follow the model-specific environment setup, data preparation, training, and inference instructions in the [LCVN README](https://github.com/UWMILab/LCVN#readme). LCVN-Uni and LCVN-WM + LCVN-AC use separate environments.
 
 ### 3. Prepare a Submission
 
@@ -180,7 +190,7 @@ Two complementary LCVN approaches serve as the reference baselines:
 | **LCVN-Uni** | A unified autoregressive multimodal model fine-tuned from Anole-7B that jointly predicts the next action and next observation in a single forward pass. |
 | **LCVN-WM + LCVN-AC** | A language-conditioned diffusion world model paired with an actor-critic agent trained entirely in the world model's latent space using intrinsic rollout rewards. |
 
-Implementations and usage instructions are provided in the [LCVN repository](https://github.com/F1y1113/LCVN). See the [LCVN paper](https://arxiv.org/abs/2603.26741) for details.
+Implementations and usage instructions are provided in the [LCVN repository](https://github.com/UWMILab/LCVN). See the [LCVN paper](https://arxiv.org/abs/2603.26741) for details.
 
 ## 📏 Evaluation
 
@@ -211,59 +221,70 @@ $$
 
 ## 📥 Submission Format
 
-Submit predictions as **one ZIP archive** through [CodaBench](https://www.codabench.org/competitions/18185/).
+Submit predicted action sequences as **one ZIP archive** through [CodaBench](https://www.codabench.org/competitions/18185/).
 
-| Phase | Required files at the ZIP archive root |
-|:--|:--|
-| Phase 1 | `val_seen.json` and `val_unseen.json` |
-| Phase 2 | `test.json` |
+### Phase 2: Final Evaluation Submission
 
-### Prediction File Structure
+Include all **15,303 test episodes** in one root-level `test.json`:
 
-The example below illustrates the JSON structure with one episode and three motion commands. It is abbreviated; use the downloadable example submission for the full list of phase episode IDs. The list ends the trajectory, with no separate Stop token. Phase 2 uses `"split": "test"` and the `LCVN_test_00001` folder IDs.
+```text
+submission.zip
+└── test.json
+```
+
+```bash
+zip -j submission.zip test.json
+```
+
+Each prediction file follows this schema (the example is abbreviated):
 
 ```json
 {
-  "split": "val_unseen",
+  "split": "test",
   "episodes": [
     {
-      "episode_id": "20210826_40_0001_02_0",
+      "episode_id": "LCVN_test_00001",
       "actions": [[0.25, 0.0, 0.0], [0.0, 0.0, 0.15], [0.12, -0.05, 0.0]]
     }
   ]
 }
 ```
 
-| Field | Description |
-|:--|:--|
-| `split` | `val_seen`, `val_unseen`, or `test`, matching the filename. |
-| `episodes` | Predictions for every episode in the phase manifest. |
-| `episode_id` | Manifest identifier; include each exactly once. |
-| `actions` | Variable-length `[dx, dy, dyaw]` sequence. `dx` is forward, `dy` is leftward in the agent's **current local frame**, and `dyaw` is in radians. |
+Use the test folder names as `episode_id`. Download the Phase 2 example ZIP from CodaBench's **Files** tab and replace its illustrative actions.
 
-At test time, use only the initial RGB image and instruction; the private scorer reconstructs the route from a withheld initial pose. For global training deltas `(ΔX, ΔY)`, use released training yaw `ψ`: `dx = cos(ψ)ΔX + sin(ψ)ΔY`, `dy = −sin(ψ)ΔX + cos(ψ)ΔY`, and wrap heading updates: `dyaw = np.arctan2(np.sin(dyaw), np.cos(dyaw))` to the canonical range `[−π, π)`.
+<details>
+<summary><b>Phase 1: Validation submission format (click to expand)</b></summary>
 
-See [CodaBench](https://www.codabench.org/competitions/18185/) → **Submission & Evaluation** for action limits and the complete example ZIP.
+Include both validation split files at the archive root:
 
-### Package and Upload
+```text
+submission.zip
+├── val_seen.json
+└── val_unseen.json
+```
 
-For **Phase 1**:
+Use `split: "val_seen"` or `split: "val_unseen"` and the original validation episode IDs. Include all 10,806 seen and 4,500 unseen episodes.
 
 ```bash
 zip -j submission.zip val_seen.json val_unseen.json
 ```
 
-For **Phase 2**, create a separate archive:
+</details>
 
-```bash
-zip -j submission_test.zip test.json
-```
+| Field | Description |
+|:--|:--|
+| `split` | `test` for Phase 2; `val_seen` or `val_unseen` for Phase 1. |
+| `episodes` | Predictions for every required episode, each included exactly once. |
+| `episode_id` | The episode's folder name. |
+| `actions` | Variable-length `[dx, dy, dyaw]` sequence. `dx` is forward, `dy` is leftward in the agent's **current local frame**, and `dyaw` is in radians. |
 
-Place only the required JSON files at the archive root; do not include a parent directory or unrelated files. Upload the archive to the corresponding CodaBench phase, then check My Submissions for its status and scores.
+The action list ends the trajectory; no separate Stop token is required. At test time, use only the initial RGB image and instruction. For global training deltas `(ΔX, ΔY)`, use released training yaw `ψ`: `dx = cos(ψ)ΔX + sin(ψ)ΔY`, `dy = −sin(ψ)ΔX + cos(ψ)ΔY`, and wrap heading updates with `dyaw = np.arctan2(np.sin(dyaw), np.cos(dyaw))`.
+
+See **Submission & Evaluation** on CodaBench for action limits. Upload the archive to the corresponding phase, then check **My Submissions** for status and scores.
 
 ### Submission Limits
 
-Phase 1 allows **100 submissions per day**; Phase 2 allows **5 per day**. Each participant may submit **100 times in total per phase**. The leaderboard retains the team's best-scoring submission.
+Phase 2 allows **5 submissions per day and 200 in total per participant**. Phase 1 allows **100 per day and 100 in total**. The leaderboard retains the team's best-scoring submission.
 
 ## ❓ Frequently Asked Questions
 
@@ -297,12 +318,12 @@ Compare the archive root, episode IDs, and JSON fields with the downloadable exa
 |:--|:--|
 | Challenge Website | [RoboWorld 2026](https://roboworld2026.github.io) |
 | Official Track 1 Website | [RoboWorld 2026 — Track 1: WorldNav](https://roboworld2026.github.io/track1) |
-| Track 1 Repository | [worldnav-challenge](https://github.com/F1y1113/worldnav-challenge) |
+| Track 1 Repository | [WorldNav Track 1](https://github.com/roboworld2026/track1) |
 | Evaluation & Leaderboard | [CodaBench Competition #18185](https://www.codabench.org/competitions/18185/) |
 | Dataset | [LCVN on Hugging Face](https://huggingface.co/datasets/fly1113/LCVN) |
 | Baseline Implementation | [LCVN Repository](https://github.com/UWMILab/LCVN) |
 
-For technical support, use [GitHub Issues](https://github.com/F1y1113/worldnav-challenge/issues).  
+For technical support, use [GitHub Issues](https://github.com/roboworld2026/track1/issues).<br>
 For event and registration questions, email [roboworld2026@gmail.com](mailto:roboworld2026@gmail.com).
 
 ### 💬 Community & Discussion
