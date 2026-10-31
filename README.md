@@ -75,7 +75,7 @@ test/
     └── traj_data.pkl
 ```
 
-Use the folder name as `episode_id`. Submit all 15,303 test episodes in `test.json`; the example ZIP is available in the Phase 2 Files tab on CodaBench.
+Use the folder name as `episode_id`. Submit all 15,295 test episodes in `test.json`; the example ZIP is available in the Phase 2 Files tab on CodaBench.
 
 ### 🗓️ Timeline
 
@@ -99,9 +99,9 @@ Official challenge awards are aligned with the [RoboWorld 2026 Awards & Recognit
 
 ## 📊 Dataset
 
-The track uses the **LCVN dataset**, comprising **39,016 trajectories** and **117,048 human-verified instructions** sourced from Go Stanford, ReCon, SCAND, HuRoN, and TartanDrive.
+The track uses the **LCVN dataset**, comprising **39,016 trajectories** sourced from Go Stanford, ReCon, SCAND, HuRoN, and TartanDrive.
 
-Each trajectory is paired with three instruction styles:
+The instructions cover three styles:
 
 - **Concise:** Short instructions containing essential directional cues.
 - **Intricate:** Detailed instructions describing visual context, objects, people, and scene layout.
@@ -114,8 +114,8 @@ Each trajectory is paired with three instruction styles:
 | Train | 28,813 | 86,439 | Training |
 | Validation Seen | 3,602 | 10,806 | In-domain validation |
 | Validation Unseen | 1,500 | 4,500 | Unseen-domain validation |
-| Test | 5,101 | 15,303 | Final evaluation |
-| **Total** | **39,016** | **117,048** | |
+| Test | 5,101 | 15,295 | Final evaluation |
+| **Total** | **39,016** | **117,040** | |
 
 Go Stanford, ReCon, SCAND, and HuRoN provide the training and in-domain evaluation data. The unseen validation split is drawn exclusively from TartanDrive. The test split contains trajectories from both TartanDrive and in-domain sources.
 
@@ -225,7 +225,7 @@ Submit predicted action sequences as **one ZIP archive** through [CodaBench](htt
 
 ### Phase 2: Final Evaluation Submission
 
-Include all **15,303 test episodes** in one root-level `test.json`:
+Include all **15,295 test episodes** in one root-level `test.json`:
 
 ```text
 submission.zip
@@ -250,7 +250,7 @@ Each prediction file follows this schema (the example is abbreviated):
 }
 ```
 
-Use the test folder names as `episode_id`. Download the Phase 2 example ZIP from CodaBench's **Files** tab and replace its illustrative actions.
+Use the provided test folder IDs, including any gaps in numbering. Download the Phase 2 example ZIP from CodaBench's **Files** tab and replace its illustrative actions.
 
 <details>
 <summary><b>Phase 1: Validation submission format (click to expand)</b></summary>
@@ -306,7 +306,7 @@ No. Phase 2 provides the initial observations and instructions needed for infere
 
 **5. Which episodes must my submission include?**
 
-Include every episode in the official manifest exactly once. Phase 1 requires 10,806 `val_seen` episodes and 4,500 `val_unseen` episodes, covering the three instruction styles. Phase 2 requires all 15,303 test episodes, using the test folder names as episode identifiers.
+Include every episode in the official manifest exactly once. Phase 1 requires 10,806 `val_seen` episodes and 4,500 `val_unseen` episodes, covering the three instruction styles. Phase 2 requires all 15,295 test episodes, using the test folder names as episode identifiers.
 
 **6. What should I do if my submission is rejected?**
 
