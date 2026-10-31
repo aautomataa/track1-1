@@ -62,18 +62,7 @@ Agents may generate the trajectory autoregressively, using their own predicted f
 
 **Phase 1 supports method development and validation; it does not determine shortlisting, final rankings, or awards. Final rankings and awards are determined entirely by the Phase 2 test Score.** Scores from the two phases are not combined. Phase 1 remains open for validation submissions during Phase 2.
 
-#### Phase 2 inputs
-
-Each test sample contains one initial image and a `traj_data.pkl` containing only `instruction`:
-
-```text
-test/
-└── LCVN_test_00001/
-    ├── 0.jpg
-    └── traj_data.pkl
-```
-
-Use the folder name as `episode_id`. Submit all 15,303 test episodes in `test.json`; the example ZIP is available in the Phase 2 Files tab on CodaBench.
+[Download Phase 2 Test Dataset](https://drive.google.com/drive/folders/1QWGsRBB8KlS_v9Jf0S51C3SpKltL_ZPL?usp=sharing).
 
 ### 🗓️ Timeline
 
@@ -117,17 +106,11 @@ The instructions cover three styles:
 
 Go Stanford, ReCon, SCAND, and HuRoN provide the training and in-domain evaluation data. The unseen validation split is drawn exclusively from TartanDrive. The test split contains trajectories from both TartanDrive and in-domain sources.
 
-- **Training and validation:** [LCVN on Hugging Face](https://huggingface.co/datasets/fly1113/LCVN).
-- **Phase 2: Final Evaluation:** The test input archive is `worldnav_test.zip`; the download link will be added here. Each sample provides its initial image and instruction; reference annotations remain withheld.
+Training and validation data are available on [Hugging Face](https://huggingface.co/datasets/fly1113/LCVN). Phase 2 provides initial RGB observations and instructions; reference test trajectories remain withheld.
 
 ## 🚀 Getting Started
 
 ### 1. Download the Data
-
-For Phase 2, extract `worldnav_test.zip` to obtain the `test/` folder.
-
-<details>
-<summary><b>Training and Phase 1 validation data (click to expand)</b></summary>
 
 From this track repository, run:
 
@@ -161,8 +144,6 @@ data/
 ```
 
 Each `{trajectory_id}/` folder contains a sequence of egocentric RGB frames (`0.jpg`, `1.jpg`, ..., `n.jpg`) and a `traj_data.pkl` file storing trajectory metadata such as navigation actions, pose-related information, and language instructions.
-
-</details>
 
 ### 2. Set Up a Baseline
 
@@ -221,20 +202,14 @@ $$
 
 Submit predicted action sequences as **one ZIP archive** through [CodaBench](https://www.codabench.org/competitions/18185/).
 
-### Phase 2: Final Evaluation Submission
+| Phase | Required files at the ZIP archive root |
+|:--|:--|
+| Phase 1 | `val_seen.json` and `val_unseen.json` |
+| Phase 2 | `test.json` |
 
-Include all **15,303 test episodes** in one root-level `test.json`:
+### Prediction File Structure
 
-```text
-submission.zip
-└── test.json
-```
-
-```bash
-zip -j submission.zip test.json
-```
-
-Each prediction file follows this schema (the example is abbreviated):
+The example below illustrates the JSON structure with one episode and three motion commands. It is abbreviated; use the downloadable example submission for the full list of phase episode IDs. The list ends the trajectory, with no separate Stop token.
 
 ```json
 {
@@ -248,37 +223,32 @@ Each prediction file follows this schema (the example is abbreviated):
 }
 ```
 
-Use the test folder names as `episode_id`. Download the Phase 2 example ZIP from CodaBench's **Files** tab and replace its illustrative actions.
+| Field | Description |
+|:--|:--|
+| `split` | `val_seen`, `val_unseen`, or `test`, matching the filename. |
+| `episodes` | Predictions for every episode in the phase manifest. |
+| `episode_id` | Manifest identifier; include each exactly once. |
+| `actions` | Variable-length `[dx, dy, dyaw]` sequence. `dx` is forward, `dy` is leftward in the agent's **current local frame**, and `dyaw` is in radians. |
 
-<details>
-<summary><b>Phase 1: Validation submission format (click to expand)</b></summary>
+At test time, use only the initial RGB image and instruction; the private scorer reconstructs the route from a withheld initial pose. For global training deltas `(ΔX, ΔY)`, use released training yaw `ψ`: `dx = cos(ψ)ΔX + sin(ψ)ΔY`, `dy = −sin(ψ)ΔX + cos(ψ)ΔY`, and wrap heading updates: `dyaw = np.arctan2(np.sin(dyaw), np.cos(dyaw))` to the canonical range `[−π, π)`.
 
-Include both validation split files at the archive root:
+See [CodaBench](https://www.codabench.org/competitions/18185/) → **Submission & Evaluation** for action limits and the complete example ZIP.
 
-```text
-submission.zip
-├── val_seen.json
-└── val_unseen.json
-```
+### Package and Upload
 
-Use `split: "val_seen"` or `split: "val_unseen"` and the original validation episode IDs. Include all 10,806 seen and 4,500 unseen episodes.
+For **Phase 1**:
 
 ```bash
 zip -j submission.zip val_seen.json val_unseen.json
 ```
 
-</details>
+For **Phase 2**, create a separate archive:
 
-| Field | Description |
-|:--|:--|
-| `split` | `test` for Phase 2; `val_seen` or `val_unseen` for Phase 1. |
-| `episodes` | Predictions for every required episode, each included exactly once. |
-| `episode_id` | The episode's folder name. |
-| `actions` | Variable-length `[dx, dy, dyaw]` sequence. `dx` is forward, `dy` is leftward in the agent's **current local frame**, and `dyaw` is in radians. |
+```bash
+zip -j submission_test.zip test.json
+```
 
-The action list ends the trajectory; no separate Stop token is required. At test time, use only the initial RGB image and instruction. For global training deltas `(ΔX, ΔY)`, use released training yaw `ψ`: `dx = cos(ψ)ΔX + sin(ψ)ΔY`, `dy = −sin(ψ)ΔX + cos(ψ)ΔY`, and wrap heading updates with `dyaw = np.arctan2(np.sin(dyaw), np.cos(dyaw))`.
-
-See **Submission & Evaluation** on CodaBench for action limits. Upload the archive to the corresponding phase, then check **My Submissions** for status and scores.
+Place only the required JSON files at the archive root; do not include a parent directory or unrelated files. Upload the archive to the corresponding CodaBench phase, then check **My Submissions** for status and scores.
 
 ### Submission Limits
 
